@@ -8,6 +8,8 @@ package com.cruz.mx.control.business;
 import com.cruz.mx.control.dao.beans.PersonalBean;
 import java.util.ArrayList;
 import java.util.Collections;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.table.AbstractTableModel;
 
 /**
@@ -69,8 +71,20 @@ public class AbstractTableModelPersonal extends AbstractTableModel{
         return false;
     }
     
-    public void addData(PersonalBean data){
-        personal.add(data);
+    public void addData(PersonalBean data, JFrame frame){
+        boolean agregar = true;
+        for (PersonalBean bean : personal) {
+            if(bean.getClave().equals(data.getClave())){
+                agregar = false;
+                break;
+            }
+        }
+        if(agregar){
+            personal.add(data);
+        }
+        else{
+            JOptionPane.showMessageDialog(frame, "El empleado ya se encuentra en la lista.");
+        }
     }
     
     public void emptyData(){
