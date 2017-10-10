@@ -5,13 +5,12 @@
  */
 package com.cruz.mx.control.dao;
 
-import com.cruz.mx.control.dao.beans.ChequeoBean;
 import com.cruz.mx.control.dao.beans.PersonalBean;
-import com.cruz.mx.control.enums.EstadosChequeo;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -25,11 +24,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class PersonalDao {
     
+    private static final int NUM_REG_PAG = 3;
+    
     @Autowired
     @Qualifier("mongoTemplate")
     private MongoTemplate mt;
-    
-    private static final SimpleDateFormat SDF = new SimpleDateFormat("dd/MM/yyyy,hh:mm a");
     
     public PersonalBean existPersonal(PersonalBean personal){
         Criteria c = Criteria.where("clave").is(personal.getClave());
@@ -37,38 +36,41 @@ public class PersonalDao {
         return mt.findOne(query, PersonalBean.class);
     }
     
-    public boolean existChequeoHoy(PersonalBean personal){
-        Criteria c = Criteria.where("clave").is(personal.getClave()).
-            and("fecha").is(getFechaHoy());
+    public List<PersonalBean> existPersonalNombre(PersonalBean personal){
+        Criteria c = Criteria.where("nombre").regex(".*"+ personal.getNombre() +".*").
+                and("aPaterno").regex(".*"+ personal.getaPaterno()+".*").
+                and("aMaterno").regex(".*"+ personal.getaMaterno() +".*");
         Query query = new Query(c);
-        return mt.find(query, ChequeoBean.class).size() > 0;
+        query.limit(10);
+        return mt.find(query, PersonalBean.class);
     }
     
-    public void checarEntrada(PersonalBean personal){
-        String horaActual = getHoraActual();
-        ChequeoBean chequeo = new ChequeoBean();
-        chequeo.setClave(personal.getClave());
-        chequeo.setFecha(getFechaHoy());
-        chequeo.setEntrada(horaActual);
-        chequeo.setSalida(horaActual);
-        chequeo.setComentario(EstadosChequeo.DIA_NO_TERMINADO.getComentario());
-        mt.insert(chequeo);
+    public List<PersonalBean> consultarTodo(int pagina){
+        Query query = new Query();
+        query.with(new PageRequest(pagina, NUM_REG_PAG));
+        query.with(new Sort(Sort.Direction.ASC, "clave"));
+        return mt.find(query, PersonalBean.class);
     }
     
-    public void actualizarSalida(PersonalBean personal){
-        Criteria c = Criteria.where("clave").is(personal.getClave()).
-            and("fecha").is(getFechaHoy());
+    public void agregarPersonal(PersonalBean personal){
+        mt.insert(personal);
+    }
+    
+    public void eliminarPersonal(PersonalBean personal){
+        Criteria c = Criteria.where("clave").is(personal.getClave());
+        Query query = new Query(c);
+        mt.remove(query, PersonalBean.class);
+    }
+    
+    public void editarPersonal(PersonalBean personal){
+        Criteria c = Criteria.where("clave").is(personal.getClave());
         Query query = new Query(c);
         Update update = new Update();
-        update.set("salida", getHoraActual());
-        mt.updateFirst(query, update, ChequeoBean.class);
+        update.set("nombre", personal.getNombre());
+        update.set("aPaterno", personal.getaPaterno());
+        update.set("aMaterno", personal.getaMaterno());
+        update.set("RL", personal.getRL());
+        mt.updateFirst(query, update, PersonalBean.class);
     }
     
-    private String getFechaHoy(){
-        return SDF.format(new Date()).split(",")[0];
-    }
-    
-    private String getHoraActual(){
-        return SDF.format(new Date()).split(",")[1];
-    }
 }

@@ -6,6 +6,7 @@
 package com.cruz.mx.control.vistas;
 
 import com.cruz.mx.control.business.Properties;
+import com.cruz.mx.control.dao.ChequeoDao;
 import com.cruz.mx.control.dao.PersonalDao;
 import com.cruz.mx.control.dao.beans.PersonalBean;
 import java.awt.Dimension;
@@ -42,7 +43,7 @@ public class Principal extends javax.swing.JFrame {
     private Login dialogLogin;
     
     private PersonalDao personalDao;
-    private ImageIcon fotoEmpleadoDefault;
+    private ChequeoDao chequeoDao;
 
     /**
      * Creates new form Principal
@@ -54,7 +55,6 @@ public class Principal extends javax.swing.JFrame {
         //Se inicia el contador de hora
         TimerTask task = new TimerTask() {
             int tic = 0;
-
             @Override
             public void run() {
                 actualizarHora();
@@ -71,7 +71,6 @@ public class Principal extends javax.swing.JFrame {
         super.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
         super.setTitle("Control de asistencias " + VERSION_SISTEMA);
         this.setIconImage(new ImageIcon(getClass().getClassLoader().getResource("images/huella3.png")).getImage());
-        fotoEmpleadoDefault = new ImageIcon(getClass().getClassLoader().getResource("images/personal.png"));
         //SE PREPARA LA SECCION ADMIN
         dialogAdmin = new Administrador(this);
         dialogAdmin.setLocationRelativeTo(this);
@@ -102,6 +101,7 @@ public class Principal extends javax.swing.JFrame {
         
         //Se crean los beans
         personalDao = getObject(PersonalDao.class);
+        chequeoDao = getObject(ChequeoDao.class);
     }
 
     public void actualizarHora() {
@@ -112,7 +112,7 @@ public class Principal extends javax.swing.JFrame {
 
     private void mostrarConfirmacion(PersonalBean personal) {
         
-        final Confirmacion dialogConfirmacion = new Confirmacion(this, true, fotoEmpleadoDefault, personal);
+        final Confirmacion dialogConfirmacion = new Confirmacion(this, true, personal);
         dialogConfirmacion.setLocationRelativeTo(this);
         dialogConfirmacion.setModal(true);
 
@@ -127,6 +127,11 @@ public class Principal extends javax.swing.JFrame {
             }
         }, Properties.TIEMPO_DIALOG_CONFIRMACION, TimeUnit.SECONDS);
         dialogConfirmacion.setVisible(true);
+    }
+    
+    private void verificacionAsistencias(){
+        //Se verifica en mongo cada empleado los registros en base de datos
+        
     }
 
     /**
@@ -307,13 +312,13 @@ public class Principal extends javax.swing.JFrame {
         PersonalBean personal = personalDao.existPersonal(new PersonalBean(clave));
         if(null != personal){
             LOGGER.info(personal);
-            if(personalDao.existChequeoHoy(personal)){
+            if(chequeoDao.existChequeoHoy(personal)){
                 System.out.println("Ya hay chequeo de hoy, se actualiza la salida.");
-                personalDao.actualizarSalida(personal);
+                chequeoDao.actualizarSalida(personal);
                 mostrarConfirmacion(personal);
             }
             else{
-                personalDao.checarEntrada(personal);
+                chequeoDao.checarEntrada(personal);
             }
         }else{
             JOptionPane.showMessageDialog(this, String.format("El empleado con clave %s no existe.", clave), "No existe", JOptionPane.WARNING_MESSAGE);

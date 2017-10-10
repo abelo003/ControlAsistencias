@@ -8,6 +8,7 @@ package com.cruz.mx.control.business;
 import com.cruz.mx.control.dao.beans.PersonalBean;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.table.AbstractTableModel;
@@ -16,15 +17,15 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author acruzb
  */
-public class AbstractTableModelPersonal extends AbstractTableModel{
-    
-    private final String[] columnNames = { "Clave", "RL", "Nombre", "Apellido paterno", "Apellido materno"};
+public class AbstractTableModelPersonal extends AbstractTableModel {
+
+    private final String[] columnNames = {"Clave", "RL", "Nombre", "Apellido paterno", "Apellido materno"};
     private ArrayList<PersonalBean> personal;
 
     public AbstractTableModelPersonal() {
         personal = new ArrayList<>();
     }
-    
+
     @Override
     public int getColumnCount() {
         return columnNames.length;
@@ -38,7 +39,7 @@ public class AbstractTableModelPersonal extends AbstractTableModel{
     @Override
     public Object getValueAt(int row, int col) {
         PersonalBean staff = personal.get(row);
-        switch (col){
+        switch (col) {
             case 0:
                 return staff.getClave();
             case 1:
@@ -59,7 +60,8 @@ public class AbstractTableModelPersonal extends AbstractTableModel{
     }
 
     @Override
-    public void setValueAt(Object value, int row, int col) {}
+    public void setValueAt(Object value, int row, int col) {
+    }
 
     @Override
     public Class getColumnClass(int c) {
@@ -70,29 +72,46 @@ public class AbstractTableModelPersonal extends AbstractTableModel{
     public boolean isCellEditable(int row, int col) {
         return false;
     }
-    
-    public void addData(PersonalBean data, JFrame frame){
+
+    public void addData(PersonalBean data, JFrame frame) {
         boolean agregar = true;
         for (PersonalBean bean : personal) {
-            if(bean.getClave().equals(data.getClave())){
+            if (bean.getClave().equals(data.getClave())) {
                 agregar = false;
                 break;
             }
         }
-        if(agregar){
+        if (agregar) {
             personal.add(data);
         }
-        else{
-            JOptionPane.showMessageDialog(frame, "El empleado ya se encuentra en la lista.");
-        }
     }
-    
-    public void emptyData(){
+
+    public PersonalBean getPersonal(PersonalBean per) {
+        for (PersonalBean bean : personal) {
+            if (bean.getClave().equals(per.getClave())) {
+                return bean;
+            }
+        }
+        return null;
+    }
+
+    public boolean eliminarPersonal(PersonalBean per) {
+        Iterator<PersonalBean> iteratorBand = personal.iterator();
+        while (iteratorBand.hasNext()) {
+            if (per.getClave().equals(iteratorBand.next().getClave())) {
+                iteratorBand.remove();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void emptyData() {
         this.personal = new ArrayList<>();
     }
-    
-    public void sort(){
+
+    public void sort() {
         Collections.sort(personal);
     }
-    
+
 }

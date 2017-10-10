@@ -5,12 +5,18 @@
  */
 package com.cruz.mx.control.vistas;
 
+import com.cruz.mx.control.dao.AvisoDao;
+import com.cruz.mx.control.dao.ChequeoDao;
+import com.cruz.mx.control.dao.beans.AvisoBean;
+import com.cruz.mx.control.dao.beans.ChequeoBean;
 import com.cruz.mx.control.dao.beans.PersonalBean;
+import com.cruz.mx.control.utils.FechaUtils;
 import java.awt.BorderLayout;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -21,36 +27,53 @@ import org.apache.commons.codec.binary.Base64;
  * @author acruzb
  */
 public class Confirmacion extends javax.swing.JDialog {
-
-    private ImageIcon image;
+    
+    private final PersonalBean personal;
+    private AvisoDao avisoDao;
 
     /**
      * Creates new form Confirmacion
      *
      * @param parent
      * @param modal
-     * @param image
      * @param personal
      */
-    public Confirmacion(java.awt.Frame parent, boolean modal, ImageIcon image, PersonalBean personal) {
+    public Confirmacion(java.awt.Frame parent, boolean modal, PersonalBean personal) {
         super(parent, modal);
         initComponents();
-        try{
-            this.image = (personal.getFoto() != null && !personal.getFoto().equals("")) ? base64ToImageIcon(personal.getFoto()): image;
-        }
-        catch(IOException e){
-            this.image = image;
-        }
-        labelNombre.setText(personal.getNombre());
-        labelPaterno.setText(personal.getaPaterno());
-        labelMaterno.setText(personal.getaMaterno());
+        this.personal = personal;
+        labelNombre.setText(personal.getNombre() + " " + personal.getaPaterno() + " " + personal.getaMaterno());
         this.setResizable(false);
         this.setTitle("Información del empleado.");
         init();
     }
 
     private void init() {
-        panelFoto.add(new PanelImagen(panelFoto, image), BorderLayout.CENTER);
+        textAreaAviso.setLineWrap(true);
+        avisoDao = Principal.getObject(AvisoDao.class);
+        checarAvisosInvidivual();
+        btnOk.requestFocus();
+    }
+    
+    private void checarAvisosInvidivual(){
+        String stringAviso = "";
+        List<AvisoBean> avisos = avisoDao.consultarAvisosIndividual(personal.getClave(), FechaUtils.getFechaHoy());
+        for(AvisoBean aviso : avisos){
+            System.out.println(aviso);
+            stringAviso += aviso.getTipo() + "\n" + aviso.getContenido()+ "\n";
+        }
+        textAreaAviso.setText(stringAviso);
+        checarAvisosGeneral();
+    }
+    
+    private void checarAvisosGeneral(){
+        String stringAviso = "";
+        List<AvisoBean> avisos = avisoDao.consultarAvisosGeneral(FechaUtils.getFechaHoy());
+        for(AvisoBean aviso : avisos){
+            System.out.println(aviso);
+            stringAviso += aviso.getTipo() + "\n" + aviso.getContenido()+ "\n";
+        }
+        textAreaAviso.setText(textAreaAviso.getText() + stringAviso);
     }
     
     private ImageIcon base64ToImageIcon(String base64) throws IOException{
@@ -92,26 +115,38 @@ public class Confirmacion extends javax.swing.JDialog {
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
-        panelFoto = new javax.swing.JPanel();
         labelNombre = new javax.swing.JLabel();
-        labelPaterno = new javax.swing.JLabel();
-        labelMaterno = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        textAreaAviso = new javax.swing.JTextArea();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        btnOk = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        panelFoto.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-        panelFoto.setMinimumSize(new java.awt.Dimension(150, 150));
-        panelFoto.setPreferredSize(new java.awt.Dimension(150, 150));
-        panelFoto.setLayout(new java.awt.BorderLayout());
+        labelNombre.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        labelNombre.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        labelNombre.setText("Abel Cruz Baños");
 
-        labelNombre.setFont(new java.awt.Font("Tahoma", 0, 22)); // NOI18N
-        labelNombre.setText("Abel");
+        textAreaAviso.setEditable(false);
+        textAreaAviso.setColumns(20);
+        textAreaAviso.setFont(new java.awt.Font("Monospaced", 0, 16)); // NOI18N
+        textAreaAviso.setRows(5);
+        textAreaAviso.setEnabled(false);
+        jScrollPane1.setViewportView(textAreaAviso);
 
-        labelPaterno.setFont(new java.awt.Font("Tahoma", 0, 22)); // NOI18N
-        labelPaterno.setText("Cruz");
+        jLabel1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel1.setText("Avisos");
 
-        labelMaterno.setFont(new java.awt.Font("Tahoma", 0, 22)); // NOI18N
-        labelMaterno.setText("Baños");
+        jLabel2.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel2.setText("Empleado:");
+
+        btnOk.setText("Ok");
+        btnOk.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnOkActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -119,54 +154,61 @@ public class Confirmacion extends javax.swing.JDialog {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(panelFoto, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(labelNombre, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(labelPaterno, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(labelMaterno, javax.swing.GroupLayout.DEFAULT_SIZE, 212, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(labelNombre, javax.swing.GroupLayout.DEFAULT_SIZE, 377, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btnOk, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(labelNombre)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(labelPaterno)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(labelMaterno))
-                    .addComponent(panelFoto, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(labelNombre)
+                    .addComponent(jLabel2))
+                .addGap(10, 10, 10)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnOk)
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnOkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOkActionPerformed
+        this.dispose();
+    }//GEN-LAST:event_btnOkActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnOk;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JLabel labelMaterno;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel labelNombre;
-    private javax.swing.JLabel labelPaterno;
-    private javax.swing.JPanel panelFoto;
+    private javax.swing.JTextArea textAreaAviso;
     // End of variables declaration//GEN-END:variables
 }
