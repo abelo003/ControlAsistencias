@@ -7,6 +7,7 @@ package com.cruz.mx.control.utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import org.jdatepicker.impl.UtilDateModel;
 
 /**
  *
@@ -22,6 +23,10 @@ public class FechaUtils {
     
     public static String getFechaHoy(){
         return DATE_FORMAT.format(new Date());
+    }
+    
+    public static String getFecha(UtilDateModel model){
+        return String.format("%02d", model.getDay()) + "/" + String.format("%02d", (model.getMonth() + 1)) + "/" + model.getYear();
     }
     
 }

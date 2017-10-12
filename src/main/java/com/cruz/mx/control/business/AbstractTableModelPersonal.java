@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.table.AbstractTableModel;
 
 /**
@@ -74,16 +73,13 @@ public class AbstractTableModelPersonal extends AbstractTableModel {
     }
 
     public void addData(PersonalBean data, JFrame frame) {
-        boolean agregar = true;
         for (PersonalBean bean : personal) {
             if (bean.getClave().equals(data.getClave())) {
-                agregar = false;
+                eliminarPersonal(bean);
                 break;
             }
         }
-        if (agregar) {
-            personal.add(data);
-        }
+        personal.add(data);
     }
 
     public PersonalBean getPersonal(PersonalBean per) {

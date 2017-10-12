@@ -63,5 +63,4 @@ public class HorarioBean {
         this.salida = salida;
     }
     
-    
 }

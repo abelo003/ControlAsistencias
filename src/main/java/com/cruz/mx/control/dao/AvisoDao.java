@@ -6,6 +6,7 @@
 package com.cruz.mx.control.dao;
 
 import com.cruz.mx.control.dao.beans.AvisoBean;
+import com.cruz.mx.control.utils.FechaUtils;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,8 +32,8 @@ public class AvisoDao {
         query.addCriteria(
             Criteria.where("clave").is(clave)
                 .andOperator(
-                    Criteria.where("inicio").gte(fecha),
-                    Criteria.where("fin").lte(fecha)
+                    Criteria.where("inicio").lte(fecha),
+                    Criteria.where("fin").gte(fecha)
                 )
         );
         query.with(new Sort(Sort.Direction.ASC, "inicio"));
@@ -44,12 +45,35 @@ public class AvisoDao {
         query.addCriteria(
             Criteria.where("tipo").is(AvisoBean.TIPO_GENERAL)
                 .andOperator(
-                    Criteria.where("inicio").gte(fecha),
-                    Criteria.where("fin").lte(fecha)
+                    Criteria.where("inicio").lte(fecha),
+                    Criteria.where("fin").gte(fecha)
                 )
         );
         query.with(new Sort(Sort.Direction.ASC, "inicio"));
         return mt.find(query, AvisoBean.class);
+    }
+    
+    public void agregarAviso(AvisoBean aviso){
+        mt.insert(aviso);
+    }
+    
+    public List<AvisoBean> consultarTodo(){
+        Query query = new Query();
+        query.addCriteria(
+            new Criteria().andOperator(
+                Criteria.where("inicio").lte(FechaUtils.getFechaHoy()),
+                Criteria.where("fin").gte(FechaUtils.getFechaHoy())
+            )
+        );
+        query.with(new Sort(Sort.Direction.ASC, "inicio"));
+        System.out.println(query);
+        return mt.find(query, AvisoBean.class);
+    }
+    
+    public void eliminarAviso(AvisoBean aviso){
+        Criteria c = Criteria.where("_id").is(aviso.getId());
+        Query query = new Query(c);
+        mt.remove(query, AvisoBean.class);
     }
     
 }

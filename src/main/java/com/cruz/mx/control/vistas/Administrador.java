@@ -5,14 +5,18 @@
  */
 package com.cruz.mx.control.vistas;
 
+import com.cruz.mx.control.business.AbstractTableModelAviso;
 import com.cruz.mx.control.business.AbstractTableModelPersonal;
 import com.cruz.mx.control.business.AbstractTableModelPersonalChequeo;
 import com.cruz.mx.control.business.DateLabelFormatter;
+import com.cruz.mx.control.dao.AvisoDao;
 import com.cruz.mx.control.dao.ChequeoDao;
 import com.cruz.mx.control.dao.PersonalDao;
+import com.cruz.mx.control.dao.beans.AvisoBean;
 import com.cruz.mx.control.dao.beans.ChequeoBean;
 import com.cruz.mx.control.dao.beans.PersonalBean;
 import com.cruz.mx.control.enums.EstadoEmpleadoNuevoEnum;
+import com.cruz.mx.control.utils.FechaUtils;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -38,6 +42,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.apache.log4j.Logger;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
@@ -55,15 +61,19 @@ public class Administrador extends javax.swing.JFrame {
     private Administrador admin;
     private PersonalDao personalDao;
     private ChequeoDao chequeoDao;
+    private AvisoDao avisoDao;
     private AbstractTableModelPersonal modeloPersonal;
     private AbstractTableModelPersonalChequeo modeloChequeo;
+    private AbstractTableModelAviso modeloAviso;
     
     private UtilDateModel modeloFechaInicio;
     private UtilDateModel modeloFechaFin;
     
     private JPopupMenu menuEmpleados;
+    private JPopupMenu menuAvisos;
     
     private NuevoEmpleado dialogNuevoEmpleado;
+    private NuevoAvisoDialog dialogNuevoAviso;
     
     /**
      * Creates new form Administrador
@@ -73,10 +83,13 @@ public class Administrador extends javax.swing.JFrame {
         initComponents();
         initDatePicker();
         initListeners();
+        initListenerAviso();
         initNuevoEmpleadoDialog();
+        initNuevoAvisoDialog();
         this.principal = principal;
         this.personalDao = Principal.getObject(PersonalDao.class);
         this.chequeoDao = Principal.getObject(ChequeoDao.class);
+        this.avisoDao = Principal.getObject(AvisoDao.class);
         setTitle("Administración del sistema.");
         
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
@@ -84,6 +97,7 @@ public class Administrador extends javax.swing.JFrame {
         this.setIconImage(new ImageIcon(getClass().getClassLoader().getResource("images/huella3.png")).getImage());
         modeloPersonal = new AbstractTableModelPersonal();
         modeloChequeo = new AbstractTableModelPersonalChequeo();
+        modeloAviso = new AbstractTableModelAviso();
         tablaPersonal.setModel(modeloPersonal);
         tablaPersonal.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tablaPersonal.addMouseListener(new MouseAdapter() {
@@ -118,6 +132,8 @@ public class Administrador extends javax.swing.JFrame {
         });
         tablaChequeos.setModel(modeloChequeo);
         tablaChequeos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tablaAvisos.setModel(modeloAviso);
+        tablaAvisos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         textFieldClave.requestFocus();
     }
     
@@ -154,16 +170,55 @@ public class Administrador extends javax.swing.JFrame {
                 }
             }
         });
+        modeloFechaFin.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                String fechaFin = FechaUtils.getFecha(modeloFechaFin);
+                String fechaHoy = FechaUtils.getFechaHoy();
+                if(!(fechaFin.compareTo(fechaHoy) <= 0)){
+                    modeloFechaFin.setValue(new Date());
+                }
+            }
+        });
         panelFechaInicial.setLayout(new BorderLayout());
         panelFechaInicial.add(datePickerInicio, BorderLayout.CENTER);
         panelFechaFinal.setLayout(new BorderLayout());
         panelFechaFinal.add(datePickerFin, BorderLayout.CENTER);
     }
     
+    private void initListenerAviso(){
+        menuAvisos = new JPopupMenu();
+        JMenuItem menuItemEliminar = new JMenuItem("Eliminar aviso BD");
+        
+        menuItemEliminar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int row = tablaAvisos.getSelectedRow();
+                AvisoBean aviso = modeloAviso.getAviso(row);
+                int dialogResult = JOptionPane.showConfirmDialog (admin, "¿Realmente desea eliminar el aviso?", "Confirmación", JOptionPane.WARNING_MESSAGE);
+                if(dialogResult == JOptionPane.YES_OPTION){
+                    try{
+                        avisoDao.eliminarAviso(aviso);
+                        modeloAviso.eliminarAviso(aviso);
+                        modeloAviso.fireTableDataChanged();
+                        tablaAvisos.repaint();
+                        JOptionPane.showMessageDialog(admin, "El aviso se ha eliminado exitosamente.");
+                    }catch(Exception ex){
+                        LOGGER.info("No se pudo eliminar el aviso: " + aviso, ex);
+                        JOptionPane.showMessageDialog(admin, "No se pudo eliminar el aviso.", "Aviso NO eliminado", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+        menuAvisos.add(menuItemEliminar);
+        tablaAvisos.setComponentPopupMenu(menuAvisos);
+    }
+    
     private void initListeners(){
         menuEmpleados = new JPopupMenu();
         JMenuItem menuItemCopiar = new JMenuItem("Copiar clave al Clipboard");
         JMenuItem menuItemAsistencias = new JMenuItem("Ver asistencias");
+        JMenuItem menuItemAviso = new JMenuItem("Agregar aviso a empleado");
         JMenuItem menuItemEditar = new JMenuItem("Editar información");
         JMenuItem menuItemEliminarLista = new JMenuItem("Eliminar empleado de la lista");
         JMenuItem menuItemEliminar = new JMenuItem("Eliminar empleado BD");
@@ -186,6 +241,14 @@ public class Administrador extends javax.swing.JFrame {
                 LOGGER.info("Se procede a mostrar las asistencias: " + clave);
                 textFielClaveEmpleadoBusqueda.setText(clave);
                 realizarBusquedaChequeos();
+            }
+        });
+        menuItemAviso.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int row = tablaPersonal.getSelectedRow();
+                String clave = (String)modeloPersonal.getValueAt(row, 0);
+                mostrarDialogAviso(EstadoEmpleadoNuevoEnum.NUEVO, null, clave);
             }
         });
         menuItemEditar.addActionListener(new ActionListener() {
@@ -234,6 +297,7 @@ public class Administrador extends javax.swing.JFrame {
         });
         menuEmpleados.add(menuItemCopiar);
         menuEmpleados.add(menuItemAsistencias);
+        menuEmpleados.add(menuItemAviso);
         menuEmpleados.add(menuItemEditar);
         menuEmpleados.add(menuItemEliminarLista);
         menuEmpleados.add(menuItemEliminar);
@@ -251,12 +315,31 @@ public class Administrador extends javax.swing.JFrame {
         });
     }
     
+    private void initNuevoAvisoDialog(){
+        dialogNuevoAviso = new NuevoAvisoDialog(this, true);
+        dialogNuevoAviso.setLocationRelativeTo(this);
+        dialogNuevoAviso.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                dialogNuevoAviso.limpiarCampos();
+            }
+        });
+    }
+    
     public void mostrarDialogEmpleado(EstadoEmpleadoNuevoEnum modo, PersonalBean personal){
         dialogNuevoEmpleado.setModo(modo, personal);
     }
     
     public void ocultarNuevoEmpleado(){
         dialogNuevoEmpleado.dispose();
+    }
+    
+    public void mostrarDialogAviso(EstadoEmpleadoNuevoEnum modo, AvisoBean aviso, String clave){
+        dialogNuevoAviso.setModo(modo, aviso, clave);
+    }
+    
+    public void ocultarNuevoAviso(){
+        dialogNuevoAviso.dispose();
     }
     
     public void mostrarAdmin(){
@@ -304,8 +387,8 @@ public class Administrador extends javax.swing.JFrame {
     }
     
     public void realizarBusquedaChequeos(){
-        String fechaInicio = String.format("%02d", modeloFechaInicio.getDay()) + "/" + (modeloFechaInicio.getMonth() + 1) + "/" + modeloFechaInicio.getYear();
-        String fechaFin = String.format("%02d", modeloFechaFin.getDay()) + "/" + (modeloFechaFin.getMonth() + 1) + "/" + modeloFechaFin.getYear();
+        String fechaInicio = String.format("%02d", modeloFechaInicio.getDay()) + "/" + String.format("%02d", (modeloFechaInicio.getMonth() + 1)) + "/" + modeloFechaInicio.getYear();
+        String fechaFin = String.format("%02d", modeloFechaFin.getDay()) + "/" + String.format("%02d", (modeloFechaFin.getMonth() + 1)) + "/" + modeloFechaFin.getYear();
         String clave = textFielClaveEmpleadoBusqueda.getText();
         List<ChequeoBean> chequeos = chequeoDao.consultarChequeo(clave, fechaInicio, fechaFin);
         modeloChequeo.emptyData();
@@ -368,6 +451,11 @@ public class Administrador extends javax.swing.JFrame {
         tablaChequeos = new javax.swing.JTable();
         btnEnviarReporte = new javax.swing.JButton();
         jPanel9 = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        tablaAvisos = new javax.swing.JTable();
+        btnMostrarAvisos = new javax.swing.JButton();
+        btnNuevoAviso = new javax.swing.JButton();
+        jLabel9 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -416,7 +504,7 @@ public class Administrador extends javax.swing.JFrame {
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel5Layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 183, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 185, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnLimpiarPersonal)
@@ -722,21 +810,70 @@ public class Administrador extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addGap(10, 10, 10)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 437, Short.MAX_VALUE)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, 437, Short.MAX_VALUE)))
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 439, Short.MAX_VALUE)
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, 439, Short.MAX_VALUE)))
         );
 
         tabledPanelPrincipal.addTab("Empleados", jPanel1);
+
+        tablaAvisos.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane3.setViewportView(tablaAvisos);
+
+        btnMostrarAvisos.setText("Mostrar avisos activos");
+        btnMostrarAvisos.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMostrarAvisosActionPerformed(evt);
+            }
+        });
+
+        btnNuevoAviso.setText("Nuevo aviso");
+        btnNuevoAviso.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnNuevoAvisoActionPerformed(evt);
+            }
+        });
+
+        jLabel9.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel9.setText("Gestión de avisos a empleados");
 
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
         jPanel9.setLayout(jPanel9Layout);
         jPanel9Layout.setHorizontalGroup(
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 964, Short.MAX_VALUE)
+            .addGroup(jPanel9Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 944, Short.MAX_VALUE)
+                    .addGroup(jPanel9Layout.createSequentialGroup()
+                        .addComponent(btnMostrarAvisos)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnNuevoAviso)))
+                .addContainerGap())
         );
         jPanel9Layout.setVerticalGroup(
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 447, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel9Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel9)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnMostrarAvisos)
+                    .addComponent(btnNuevoAviso))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 360, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         tabledPanelPrincipal.addTab("Gestión de avisos", jPanel9);
@@ -800,6 +937,7 @@ public class Administrador extends javax.swing.JFrame {
         for (PersonalBean persona : personas) {
             modeloPersonal.addData(persona, this);
         }
+        modeloPersonal.sort();
         modeloPersonal.fireTableDataChanged();
         tablaPersonal.repaint();
     }//GEN-LAST:event_btnBuscarNombreActionPerformed
@@ -808,12 +946,28 @@ public class Administrador extends javax.swing.JFrame {
         mostrarDialogEmpleado(EstadoEmpleadoNuevoEnum.NUEVO, null);
     }//GEN-LAST:event_btnAgregarEmpleadoActionPerformed
 
+    private void btnNuevoAvisoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNuevoAvisoActionPerformed
+        mostrarDialogAviso(EstadoEmpleadoNuevoEnum.NUEVO, null, null);
+    }//GEN-LAST:event_btnNuevoAvisoActionPerformed
+
+    private void btnMostrarAvisosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMostrarAvisosActionPerformed
+        modeloAviso.emptyData();
+        List<AvisoBean> avisos = avisoDao.consultarTodo();
+        for (AvisoBean aviso : avisos) {
+            modeloAviso.addData(aviso);
+        }
+        modeloAviso.fireTableDataChanged();
+        tablaAvisos.repaint();
+    }//GEN-LAST:event_btnMostrarAvisosActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAgregarEmpleado;
     private javax.swing.JButton btnBuscarClave;
     private javax.swing.JButton btnBuscarNombre;
     private javax.swing.JButton btnEnviarReporte;
     private javax.swing.JButton btnLimpiarPersonal;
+    private javax.swing.JButton btnMostrarAvisos;
+    private javax.swing.JButton btnNuevoAviso;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -823,6 +977,7 @@ public class Administrador extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
     private javax.swing.JPanel jPanel2;
@@ -835,9 +990,11 @@ public class Administrador extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JPanel panelFechaFinal;
     private javax.swing.JPanel panelFechaInicial;
     private javax.swing.JTabbedPane panelMostrarTodo;
+    private javax.swing.JTable tablaAvisos;
     private javax.swing.JTable tablaChequeos;
     private javax.swing.JTable tablaPersonal;
     private javax.swing.JTabbedPane tabledPanelPrincipal;

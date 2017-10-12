@@ -6,8 +6,6 @@
 package com.cruz.mx.control.dao.beans;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.util.Date;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -100,7 +98,7 @@ public class PersonalBean implements Comparable<PersonalBean>{
 
     @Override
     public int compareTo(PersonalBean o) {
-        return o.getNombre().compareTo(this.getNombre());
+        return this.getClave().compareTo(o.getClave());
     }
     
 }

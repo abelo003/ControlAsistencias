@@ -5,7 +5,6 @@
  */
 package com.cruz.mx.control.vistas;
 
-import com.cruz.mx.control.business.Properties;
 import com.cruz.mx.control.dao.ChequeoDao;
 import com.cruz.mx.control.dao.PersonalDao;
 import com.cruz.mx.control.dao.beans.PersonalBean;
@@ -17,9 +16,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
@@ -41,6 +37,7 @@ public class Principal extends javax.swing.JFrame {
 
     private Administrador dialogAdmin;
     private Login dialogLogin;
+    private Confirmacion dialogConfirmacion;
     
     private PersonalDao personalDao;
     private ChequeoDao chequeoDao;
@@ -99,6 +96,16 @@ public class Principal extends javax.swing.JFrame {
             }
         });
         
+        dialogConfirmacion = new Confirmacion(this, true);
+        dialogConfirmacion.setLocationRelativeTo(this);
+        dialogConfirmacion.setModal(true);
+        dialogConfirmacion.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                dialogConfirmacion.limpiarCampos();
+            }
+        });
+        
         //Se crean los beans
         personalDao = getObject(PersonalDao.class);
         chequeoDao = getObject(ChequeoDao.class);
@@ -110,23 +117,8 @@ public class Principal extends javax.swing.JFrame {
         textFieldHora.setText(fechHora[1]);
     }
 
-    private void mostrarConfirmacion(PersonalBean personal) {
-        
-        final Confirmacion dialogConfirmacion = new Confirmacion(this, true, personal);
-        dialogConfirmacion.setLocationRelativeTo(this);
-        dialogConfirmacion.setModal(true);
-
-        //Must schedule the close before the dialog becomes visible
-        ScheduledExecutorService s = Executors.newSingleThreadScheduledExecutor();
-        s.schedule(new Runnable() {
-            @Override
-            public void run() {
-                dialogConfirmacion.setVisible(false); //should be invoked on the EDT
-                dialogConfirmacion.dispose();
-                fieldClave.requestFocus();
-            }
-        }, Properties.TIEMPO_DIALOG_CONFIRMACION, TimeUnit.SECONDS);
-        dialogConfirmacion.setVisible(true);
+    private void mostrarConfirmacion(PersonalBean personal, boolean avisos) {
+        dialogConfirmacion.visualizarConfirmacion(personal, avisos);
     }
     
     private void verificacionAsistencias(){
@@ -311,14 +303,13 @@ public class Principal extends javax.swing.JFrame {
         String clave = new String(fieldClave.getPassword());
         PersonalBean personal = personalDao.existPersonal(new PersonalBean(clave));
         if(null != personal){
-            LOGGER.info(personal);
             if(chequeoDao.existChequeoHoy(personal)){
-                System.out.println("Ya hay chequeo de hoy, se actualiza la salida.");
                 chequeoDao.actualizarSalida(personal);
-                mostrarConfirmacion(personal);
+                mostrarConfirmacion(personal, false);
             }
             else{
                 chequeoDao.checarEntrada(personal);
+                mostrarConfirmacion(personal, true);
             }
         }else{
             JOptionPane.showMessageDialog(this, String.format("El empleado con clave %s no existe.", clave), "No existe", JOptionPane.WARNING_MESSAGE);

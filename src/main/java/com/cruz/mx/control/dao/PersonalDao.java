@@ -48,7 +48,7 @@ public class PersonalDao {
     public List<PersonalBean> consultarTodo(int pagina){
         Query query = new Query();
         query.with(new PageRequest(pagina, NUM_REG_PAG));
-        query.with(new Sort(Sort.Direction.ASC, "clave"));
+        query.with(new Sort(Sort.Direction.DESC, "clave"));
         return mt.find(query, PersonalBean.class);
     }
     

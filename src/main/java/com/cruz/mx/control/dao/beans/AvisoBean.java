@@ -19,6 +19,7 @@ public class AvisoBean {
     public final static String TIPO_INDIVIDUAL = "INDIVIDUAL";
     public final static String TIPO_GENERAL = "GENERAL";
     
+    private String _id;
     private String tipo;
     private String clave;
     private String inicio;
@@ -26,6 +27,14 @@ public class AvisoBean {
     private String contenido;
 
     public AvisoBean() {
+    }
+
+    public String getId() {
+        return _id;
+    }
+
+    public void setId(String _id) {
+        this._id = _id;
     }
 
     public String getTipo() {

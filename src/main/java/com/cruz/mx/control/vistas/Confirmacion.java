@@ -6,12 +6,9 @@
 package com.cruz.mx.control.vistas;
 
 import com.cruz.mx.control.dao.AvisoDao;
-import com.cruz.mx.control.dao.ChequeoDao;
 import com.cruz.mx.control.dao.beans.AvisoBean;
-import com.cruz.mx.control.dao.beans.ChequeoBean;
 import com.cruz.mx.control.dao.beans.PersonalBean;
 import com.cruz.mx.control.utils.FechaUtils;
-import java.awt.BorderLayout;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -28,7 +25,7 @@ import org.apache.commons.codec.binary.Base64;
  */
 public class Confirmacion extends javax.swing.JDialog {
     
-    private final PersonalBean personal;
+    private PersonalBean personal;
     private AvisoDao avisoDao;
 
     /**
@@ -36,13 +33,10 @@ public class Confirmacion extends javax.swing.JDialog {
      *
      * @param parent
      * @param modal
-     * @param personal
      */
-    public Confirmacion(java.awt.Frame parent, boolean modal, PersonalBean personal) {
+    public Confirmacion(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-        this.personal = personal;
-        labelNombre.setText(personal.getNombre() + " " + personal.getaPaterno() + " " + personal.getaMaterno());
         this.setResizable(false);
         this.setTitle("Información del empleado.");
         init();
@@ -51,29 +45,45 @@ public class Confirmacion extends javax.swing.JDialog {
     private void init() {
         textAreaAviso.setLineWrap(true);
         avisoDao = Principal.getObject(AvisoDao.class);
-        checarAvisosInvidivual();
         btnOk.requestFocus();
+    }
+    
+    public void limpiarCampos(){
+        textAreaAviso.setText("");
+    }
+    
+    public void visualizarConfirmacion(PersonalBean personal, boolean avisos){
+        this.personal = personal;
+        labelNombre.setText(personal.getNombre() + " " + personal.getaPaterno() + " " + personal.getaMaterno());
+        if(avisos){
+            checarAvisosInvidivual();
+        }
+        this.setVisible(true);
     }
     
     private void checarAvisosInvidivual(){
         String stringAviso = "";
         List<AvisoBean> avisos = avisoDao.consultarAvisosIndividual(personal.getClave(), FechaUtils.getFechaHoy());
-        for(AvisoBean aviso : avisos){
-            System.out.println(aviso);
-            stringAviso += aviso.getTipo() + "\n" + aviso.getContenido()+ "\n";
+        if(null != avisos){
+            for(AvisoBean aviso : avisos){
+                System.out.println(aviso);
+                stringAviso += aviso.getTipo() + "\n" + aviso.getContenido()+ "\n";
+            }
+            textAreaAviso.setText(stringAviso);
         }
-        textAreaAviso.setText(stringAviso);
         checarAvisosGeneral();
     }
     
     private void checarAvisosGeneral(){
         String stringAviso = "";
         List<AvisoBean> avisos = avisoDao.consultarAvisosGeneral(FechaUtils.getFechaHoy());
-        for(AvisoBean aviso : avisos){
-            System.out.println(aviso);
-            stringAviso += aviso.getTipo() + "\n" + aviso.getContenido()+ "\n";
+        if(null != avisos){
+            for(AvisoBean aviso : avisos){
+                System.out.println(aviso);
+                stringAviso += aviso.getTipo() + "\n" + aviso.getContenido()+ "\n";
+            }
+            textAreaAviso.setText(textAreaAviso.getText() + stringAviso);
         }
-        textAreaAviso.setText(textAreaAviso.getText() + stringAviso);
     }
     
     private ImageIcon base64ToImageIcon(String base64) throws IOException{
