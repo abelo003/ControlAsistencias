@@ -27,6 +27,7 @@ public class Confirmacion extends javax.swing.JDialog {
     
     private PersonalBean personal;
     private AvisoDao avisoDao;
+    private ImageIcon defautlPerson;
 
     /**
      * Creates new form Confirmacion
@@ -34,9 +35,10 @@ public class Confirmacion extends javax.swing.JDialog {
      * @param parent
      * @param modal
      */
-    public Confirmacion(java.awt.Frame parent, boolean modal) {
+    public Confirmacion(java.awt.Frame parent, boolean modal, ImageIcon defautlPerson) {
         super(parent, modal);
         initComponents();
+        this.defautlPerson = defautlPerson;
         this.setResizable(false);
         this.setTitle("Información del empleado.");
         init();
@@ -58,6 +60,12 @@ public class Confirmacion extends javax.swing.JDialog {
         if(avisos){
             checarAvisosInvidivual();
         }
+        if(null != personal.getFoto()){
+            panelImagen = new PanelImagen(panelImagen, base64ToImageIcon(personal.getFoto()));
+        }
+        else{
+            panelImagen = new PanelImagen(panelImagen, defautlPerson);
+        }
         this.setVisible(true);
     }
     
@@ -67,7 +75,7 @@ public class Confirmacion extends javax.swing.JDialog {
         if(null != avisos){
             for(AvisoBean aviso : avisos){
                 System.out.println(aviso);
-                stringAviso += aviso.getTipo() + "\n" + aviso.getContenido()+ "\n";
+                stringAviso += aviso.getTipo() + " --- " + aviso.getContenido()+ "\n";
             }
             textAreaAviso.setText(stringAviso);
         }
@@ -80,18 +88,21 @@ public class Confirmacion extends javax.swing.JDialog {
         if(null != avisos){
             for(AvisoBean aviso : avisos){
                 System.out.println(aviso);
-                stringAviso += aviso.getTipo() + "\n" + aviso.getContenido()+ "\n";
+                stringAviso += aviso.getTipo() + " --- " + aviso.getContenido()+ "\n";
             }
             textAreaAviso.setText(textAreaAviso.getText() + stringAviso);
         }
     }
     
-    private ImageIcon base64ToImageIcon(String base64) throws IOException{
+    private ImageIcon base64ToImageIcon(String base64){
         return new ImageIcon(base64ToBufferedImage(base64));
     }
     
-    public BufferedImage base64ToBufferedImage(String imageB64) throws IOException {
-        return ImageIO.read(new ByteArrayInputStream(Base64.decodeBase64(imageB64.getBytes())));
+    public BufferedImage base64ToBufferedImage(String imageB64){
+        try{
+            return ImageIO.read(new ByteArrayInputStream(Base64.decodeBase64(imageB64.getBytes())));
+        }catch(IOException e){}
+        return null;
     }
 
     /**
@@ -131,6 +142,7 @@ public class Confirmacion extends javax.swing.JDialog {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         btnOk = new javax.swing.JButton();
+        panelImagen = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -140,8 +152,9 @@ public class Confirmacion extends javax.swing.JDialog {
 
         textAreaAviso.setEditable(false);
         textAreaAviso.setColumns(20);
-        textAreaAviso.setFont(new java.awt.Font("Monospaced", 0, 16)); // NOI18N
+        textAreaAviso.setFont(new java.awt.Font("Arial", 1, 16)); // NOI18N
         textAreaAviso.setRows(5);
+        textAreaAviso.setText("Hola mundo cruel");
         textAreaAviso.setEnabled(false);
         jScrollPane1.setViewportView(textAreaAviso);
 
@@ -158,6 +171,17 @@ public class Confirmacion extends javax.swing.JDialog {
             }
         });
 
+        javax.swing.GroupLayout panelImagenLayout = new javax.swing.GroupLayout(panelImagen);
+        panelImagen.setLayout(panelImagenLayout);
+        panelImagenLayout.setHorizontalGroup(
+            panelImagenLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 111, Short.MAX_VALUE)
+        );
+        panelImagenLayout.setVerticalGroup(
+            panelImagenLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -166,29 +190,36 @@ public class Confirmacion extends javax.swing.JDialog {
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(labelNombre, javax.swing.GroupLayout.DEFAULT_SIZE, 377, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(btnOk, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(btnOk, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(labelNombre, javax.swing.GroupLayout.DEFAULT_SIZE, 451, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(panelImagen, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(labelNombre)
-                    .addComponent(jLabel2))
-                .addGap(10, 10, 10)
-                .addComponent(jLabel1)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(labelNombre)
+                            .addComponent(jLabel2))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 77, Short.MAX_VALUE)
+                        .addComponent(jLabel1))
+                    .addComponent(panelImagen, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnOk)
                 .addContainerGap())
@@ -198,7 +229,9 @@ public class Confirmacion extends javax.swing.JDialog {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -219,6 +252,7 @@ public class Confirmacion extends javax.swing.JDialog {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel labelNombre;
+    private javax.swing.JPanel panelImagen;
     private javax.swing.JTextArea textAreaAviso;
     // End of variables declaration//GEN-END:variables
 }

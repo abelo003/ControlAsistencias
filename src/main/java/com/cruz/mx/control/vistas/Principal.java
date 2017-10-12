@@ -96,7 +96,7 @@ public class Principal extends javax.swing.JFrame {
             }
         });
         
-        dialogConfirmacion = new Confirmacion(this, true);
+        dialogConfirmacion = new Confirmacion(this, true, new ImageIcon(getClass().getClassLoader().getResource("images/personal.png")));
         dialogConfirmacion.setLocationRelativeTo(this);
         dialogConfirmacion.setModal(true);
         dialogConfirmacion.addWindowListener(new WindowAdapter() {
