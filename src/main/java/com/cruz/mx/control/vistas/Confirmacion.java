@@ -28,7 +28,7 @@ public class Confirmacion extends javax.swing.JDialog {
     
     private PersonalBean personal;
     private AvisoDao avisoDao;
-    private ImageIcon defautlPerson;
+    private final ImageIcon defautlPerson;
 
     /**
      * Creates new form Confirmacion
@@ -158,7 +158,6 @@ public class Confirmacion extends javax.swing.JDialog {
         textAreaAviso.setColumns(20);
         textAreaAviso.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
         textAreaAviso.setRows(5);
-        textAreaAviso.setText("Hola mundo cruel");
         textAreaAviso.setEnabled(false);
         jScrollPane1.setViewportView(textAreaAviso);
 
@@ -175,18 +174,18 @@ public class Confirmacion extends javax.swing.JDialog {
             }
         });
 
-        panelImagen.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        panelImagen.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         panelImagen.setPreferredSize(new java.awt.Dimension(100, 100));
 
         javax.swing.GroupLayout panelImagenLayout = new javax.swing.GroupLayout(panelImagen);
         panelImagen.setLayout(panelImagenLayout);
         panelImagenLayout.setHorizontalGroup(
             panelImagenLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 196, Short.MAX_VALUE)
+            .addGap(0, 163, Short.MAX_VALUE)
         );
         panelImagenLayout.setVerticalGroup(
             panelImagenLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 196, Short.MAX_VALUE)
+            .addGap(0, 163, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -205,7 +204,7 @@ public class Confirmacion extends javax.swing.JDialog {
                                 .addComponent(labelNombre, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(panelImagen, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(panelImagen, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -217,11 +216,11 @@ public class Confirmacion extends javax.swing.JDialog {
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(labelNombre)
-                        .addGap(46, 46, 46)
+                        .addGap(10, 10, 10)
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(panelImagen, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(panelImagen, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnOk)
                 .addGap(6, 6, 6))
