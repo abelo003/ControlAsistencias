@@ -59,12 +59,12 @@ public class Administrador extends javax.swing.JFrame {
     
     private final Principal principal;
     private Administrador admin;
-    private PersonalDao personalDao;
-    private ChequeoDao chequeoDao;
-    private AvisoDao avisoDao;
+    private final PersonalDao personalDao;
+    private final ChequeoDao chequeoDao;
+    private final AvisoDao avisoDao;
     private AbstractTableModelPersonal modeloPersonal;
-    private AbstractTableModelPersonalChequeo modeloChequeo;
-    private AbstractTableModelAviso modeloAviso;
+    private final AbstractTableModelPersonalChequeo modeloChequeo;
+    private final AbstractTableModelAviso modeloAviso;
     
     private UtilDateModel modeloFechaInicio;
     private UtilDateModel modeloFechaFin;
