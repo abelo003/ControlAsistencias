@@ -1,0 +1,89 @@
+db.getCollection('USUARIO').find({})
+{
+    "_id" : ObjectId("59ce7dd89183f4d5ceb0028e"),
+    "idRole" : 1,
+    "clavePersonal" : "000",
+    "nombreUsuario" : "jimbo",
+    "pwd" : "jimbo"
+}
+
+db.getCollection('ROL').find({})
+/* 1 */
+{
+    "_id" : ObjectId("59ce7c619183f4d5ceb00269"),
+    "id" : 1,
+    "roleName" : "ROLE_ADMIN"
+}
+
+/* 2 */
+{
+    "_id" : ObjectId("59ce7c619183f4d5ceb0026b"),
+    "id" : 2,
+    "roleName" : "ROLE_ASISTENTE"
+}
+
+db.getCollection('PERSONAL').find({})
+/* 3 */
+{
+    "_id" : ObjectId("59dcf69c0a9e4b4bdc6d0714"),
+    "_class" : "com.cruz.mx.control.dao.beans.PersonalBean",
+    "nombre" : "MANUEL",
+    "aPaterno" : "LIMA",
+    "aMaterno" : "JUÁREZ",
+    "RL" : "MX/CL",
+    "clave" : "0150",
+    "idHorario" : "1",
+    "foto":""
+}
+
+db.getCollection('HORARIO').find({})
+/* 1 */
+{
+    "_id" : ObjectId("59d52ee09183f4d5ceb0c39d"),
+    "idHorario" : 1,
+    "estatusActivo" : true,
+    "dias" : {
+        "LUNES" : {
+            "entrada" : "08:00 AM",
+            "comida" : "02:00 PM",
+            "regreso" : "03:00 PM",
+            "salida" : "05:00 PM"
+        },
+        "MARTES" : {
+            "entrada" : "08:00 AM",
+            "comida" : "02:00 PM",
+            "regreso" : "03:00 PM",
+            "salida" : "05:00 PM"
+        },
+        "MIERCOLES" : {
+            "entrada" : "08:00 AM",
+            "comida" : "02:00 PM",
+            "regreso" : "03:00 PM",
+            "salida" : "05:00 PM"
+        },
+        "JUEVES" : {
+            "entrada" : "08:00 AM",
+            "comida" : "02:00 PM",
+            "regreso" : "03:00 PM",
+            "salida" : "05:00 PM"
+        },
+        "VIERNES" : {
+            "entrada" : "08:00 AM",
+            "comida" : "02:00 PM",
+            "regreso" : "03:00 PM",
+            "salida" : "05:00 PM"
+        },
+        "SABADO" : {
+            "entrada" : "08:00 AM",
+            "salida" : "03:00 PM"
+        },
+        "DOMINGO" : {
+            "entrada" : "00:00",
+            "salida" : "00:00"
+        }
+    }
+}
+
+db.getCollection('CHEQUEO').find({})
+
+db.getCollection('AVISO').find({})
