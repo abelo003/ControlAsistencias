@@ -1,0 +1,13 @@
+<html>
+    <body>
+        <h3>Se adjunta el formato de asistencias del empleado ${personal.nombre} ${personal.aPaterno} ${personal.aMaterno}</h3>
+
+        <div>
+            La clave del empleado es : ${personal.clave}.
+        </div>
+        <br>
+        <br>
+        <br>
+        <span>Saludos cordiales.</span>
+    </body>
+</html>

@@ -23,6 +23,10 @@ public class AbstractTableModelPersonalChequeo extends AbstractTableModel{
         chequeos = new ArrayList<>();
     }
     
+    public String[] getColumns(){
+        return columnNames;
+    }
+    
     @Override
     public int getColumnCount() {
         return columnNames.length;
